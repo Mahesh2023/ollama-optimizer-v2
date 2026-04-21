@@ -56,16 +56,44 @@ ollama-opt serve --port 8000
 
 ## Roadmap
 
-- [x] Week 1: Hardware detection + CLI
-- [x] Week 2: Benchmarking engine
-- [x] Week 3: Auto-tuning
-- [x] Week 4: Multi-model router + caching
-- [x] Week 5: Observability dashboard
-- [x] Week 6: Deploy + launch
-- [x] Week 7: LLMOps (MLflow + Langfuse)
-- [x] Week 8: Eval pipelines
-- [x] Week 9: CI/CD for LLMs (DVC + CML)
-- [x] Week 10: Drift detection
+### v0.1.0 — Current (Alpha)
+- Hardware detection (NVIDIA, Apple Silicon, CPU)
+- Benchmarking engine (TTFT, tokens/sec, memory)
+- Auto-tuning (quantization selection, GPU layer offload)
+- Smart routing (query complexity-based model selection)
+- OpenAI-compatible API
+- Redis prompt caching
+- MLflow model registry integration
+- Langfuse LLM observability
+- Basic evaluation framework (LLM-as-judge)
+- Drift detection (statistical)
+
+### v0.2.0 — Planned (Q2 2026)
+- Semantic caching (vector-based)
+- Multi-GPU support (tensor parallelism)
+- Streaming response optimization
+- Advanced evaluation (RAGAS, TruLens)
+- GPU autoscaling integration
+- Kubernetes deployment manifests
+- Model fine-tuning pipeline (LoRA adapters)
+- Cost tracking and optimization alerts
+
+### v1.0.0 — Future (Q3 2026)
+- Enterprise auth (OAuth, SSO)
+- Multi-tenant isolation
+- Model marketplace integration
+- Distributed inference across nodes
+- Advanced prompt engineering tools
+- Real-time collaboration features
+- Comprehensive audit logs
+- SLA monitoring and alerting
+
+### Research & Exploration
+- Speculative decoding
+- Continuous batching
+- Knowledge distillation pipeline
+- Custom quantization formats
+- Cross-platform inference optimization
 
 ## License
 
