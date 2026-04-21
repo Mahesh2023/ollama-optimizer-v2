@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: ollama-optimizer
+    env: docker
+    dockerfilePath: ./deploy/Dockerfile
+    dockerContext: .
+    plan: starter
+    healthCheckPath: /health
+    envVars:
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: ollama-cache
+          property: connectionString
+      - key: OLLAMA_BASE_URL
+        value: https://your-ollama-host.modal.run
+      - key: LOG_LEVEL
+        value: INFO
+
+  - type: redis
+    name: ollama-cache
+    plan: starter
+    ipAllowList: []

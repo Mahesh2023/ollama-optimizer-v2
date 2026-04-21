@@ -1,0 +1,59 @@
+name: Model Evaluation
+
+on:
+  pull_request:
+    paths:
+      - 'configs/**'
+      - 'modelfiles/**'
+      - 'internal/eval/**'
+  workflow_dispatch:
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -e ".[dev,llmops]"
+
+      - name: Start Ollama
+        run: |
+          curl -fsSL https://ollama.com/install.sh | sh
+          ollama serve &
+          sleep 5
+          ollama pull llama3.2:1b
+
+      - name: Run evaluation (smoke)
+        run: |
+          python - <<'EOF'
+          import asyncio
+          from internal.eval.evaluator import ModelEvaluator
+
+          async def main():
+              e = ModelEvaluator(judge_model="llama3.2:1b")
+              summary = await e.evaluate_dataset(
+                  [{"prompt": "What is 2+2?", "reference": "4"}],
+                  model="llama3.2:1b",
+              )
+              print(f"Mean score: {summary.mean_score:.2f}")
+              with open("eval_results.md", "w") as f:
+                  f.write(f"# Eval Results\n\n")
+                  f.write(f"- Model: `{summary.model}`\n")
+                  f.write(f"- Mean score: **{summary.mean_score:.2f}**\n")
+                  for c, s in summary.per_criterion.items():
+                      f.write(f"  - {c}: {s:.2f}\n")
+
+          asyncio.run(main())
+          EOF
+
+      - name: Comment PR with eval results
+        if: github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          path: eval_results.md

@@ -1,0 +1,73 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ollama-optimizer"
+version = "0.1.0"
+description = "Production-grade LLMOps platform for local LLM inference"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "Apache-2.0"
+authors = [{name = "Mahesh", email = "mahesh@example.com"}]
+keywords = ["llm", "ollama", "mlops", "llmops", "ai", "inference"]
+
+dependencies = [
+    "fastapi>=0.110.0",
+    "uvicorn[standard]>=0.27.0",
+    "pydantic>=2.5.0",
+    "pydantic-settings>=2.1.0",
+    "httpx>=0.26.0",
+    "typer>=0.9.0",
+    "rich>=13.7.0",
+    "psutil>=5.9.0",
+    "redis>=5.0.0",
+    "sqlalchemy>=2.0.0",
+    "prometheus-client>=0.19.0",
+    "numpy>=1.26.0",
+    "pandas>=2.1.0",
+]
+
+[project.optional-dependencies]
+llmops = [
+    "mlflow>=2.10.0",
+    "langfuse>=2.20.0",
+    "evidently>=0.4.0",
+    "langchain>=0.1.0",
+    "langchain-community>=0.0.20",
+    "dvc>=3.40.0",
+]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    "pytest-cov>=4.1.0",
+    "ruff>=0.2.0",
+    "mypy>=1.8.0",
+    "pre-commit>=3.6.0",
+]
+
+[project.scripts]
+ollama-opt = "cmd.cli.main:app"
+
+[project.urls]
+Homepage = "https://github.com/Mahesh2023/ollama-optimizer-v2"
+Repository = "https://github.com/Mahesh2023/ollama-optimizer-v2"
+
+[tool.hatch.build.targets.wheel]
+packages = ["cmd", "internal"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "UP", "B", "SIM", "RUF"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+ignore_missing_imports = true
