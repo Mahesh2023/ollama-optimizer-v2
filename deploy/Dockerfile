@@ -1,4 +1,4 @@
-FROM python:3.12-slim AS builder
+FROM python:3.12-slim AS python-builder
 
 WORKDIR /build
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -11,13 +11,24 @@ COPY cmd ./cmd
 
 RUN pip install --no-cache-dir --prefix=/install ".[llmops]"
 
+FROM node:18 AS node-builder
+
+WORKDIR /web
+COPY web/package*.json ./
+RUN npm install
+COPY web/ ./
+RUN npm run build
+
 FROM python:3.12-slim
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-COPY --from=builder /install /usr/local
+COPY --from=python-builder /install /usr/local
+COPY --from=node-builder /web/.next /app/.next
+COPY --from=node-builder /web/public /app/public
+COPY --from=node-builder /web/package.json /app/package.json
 
 WORKDIR /app
 COPY internal ./internal

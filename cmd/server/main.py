@@ -2,13 +2,17 @@
 from __future__ import annotations
 
 import logging
+import os
 import time
 from contextlib import asynccontextmanager
+from pathlib import Path
 from typing import Any
 
 import httpx
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
 from internal.cache.redis_cache import PromptCache
@@ -81,6 +85,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Mount static files for Next.js frontend
+static_dir = Path("/app/public")
+if static_dir.exists():
+    app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
+
 
 # ---- Schemas (OpenAI-compatible) -------------------------------------------
 
@@ -118,22 +127,15 @@ class ChatCompletionResponse(BaseModel):
 # ---- Endpoints --------------------------------------------------------------
 
 @app.get("/")
-async def root() -> dict[str, Any]:
-    """Root endpoint with API information."""
-    return {
-        "service": "Ollama Optimizer v2",
-        "version": "0.1.0",
-        "description": "Production-grade LLMOps platform for local LLM inference",
-        "endpoints": {
-            "health": "/health",
-            "system": "/system",
-            "metrics": "/metrics",
-            "chat_completions": "/v1/chat/completions",
-            "cache_stats": "/admin/cache/stats",
-            "routing_table": "/admin/routing",
-            "docs": "/docs",
-        },
-    }
+async def root() -> Response:
+    """Serve Next.js frontend or API info if frontend not built."""
+    index_path = Path("/app/public/index.html")
+    if index_path.exists():
+        return FileResponse(str(index_path))
+    return Response(
+        content='{"service":"Ollama Optimizer v2","version":"0.1.0","message":"Frontend not built - see docs for deployment"}',
+        media_type="application/json"
+    )
 
 
 @app.get("/health")
