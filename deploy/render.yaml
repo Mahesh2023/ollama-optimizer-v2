@@ -13,7 +13,7 @@ services:
           name: ollama-cache
           property: connectionString
       - key: OLLAMA_BASE_URL
-        value: https://your-ollama-host.modal.run
+        value: https://emu-hardhead-unfold.ngrok-free.dev
       - key: LOG_LEVEL
         value: INFO
 
