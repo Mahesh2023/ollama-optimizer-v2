@@ -508,8 +508,13 @@ async def root() -> Response:
                         stream: false
                     })
                 });
-                const data = await res.json();
-                responseDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+                const text = await res.text();
+                try {
+                    const data = JSON.parse(text);
+                    responseDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+                } catch {
+                    responseDiv.innerHTML = `<pre>Status: ${res.status}\\nResponse:\\n${text}</pre>`;
+                }
             } catch (error) {
                 responseDiv.innerHTML = `<pre>Error: ${error.message}</pre>`;
             }
