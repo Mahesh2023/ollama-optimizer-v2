@@ -117,6 +117,25 @@ class ChatCompletionResponse(BaseModel):
 
 # ---- Endpoints --------------------------------------------------------------
 
+@app.get("/")
+async def root() -> dict[str, Any]:
+    """Root endpoint with API information."""
+    return {
+        "service": "Ollama Optimizer v2",
+        "version": "0.1.0",
+        "description": "Production-grade LLMOps platform for local LLM inference",
+        "endpoints": {
+            "health": "/health",
+            "system": "/system",
+            "metrics": "/metrics",
+            "chat_completions": "/v1/chat/completions",
+            "cache_stats": "/admin/cache/stats",
+            "routing_table": "/admin/routing",
+            "docs": "/docs",
+        },
+    }
+
+
 @app.get("/health")
 async def health() -> dict[str, Any]:
     return {"status": "ok", "service": "ollama-optimizer-v2", "version": "0.1.0"}
