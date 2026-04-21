@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ollama Optimizer v2</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 3rem;
+        }
+        header h1 {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+        }
+        header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+        }
+        .card:hover {
+            transform: translateY(-2px);
+        }
+        .card h2 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: #667eea;
+        }
+        .card .value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin: 1rem 0;
+        }
+        .card .label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        .status {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        .status.ok {
+            background: #10b981;
+            color: white;
+        }
+        .status.loading {
+            background: #f59e0b;
+            color: white;
+        }
+        .playground {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .playground h2 {
+            margin-bottom: 1rem;
+            color: #667eea;
+        }
+        textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 1rem;
+            resize: vertical;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: #5568d3;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .response {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: #f3f4f6;
+            border-radius: 8px;
+            min-height: 100px;
+        }
+        .response pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .endpoints {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-top: 2rem;
+        }
+        .endpoints h2 {
+            margin-bottom: 1rem;
+            color: #667eea;
+        }
+        .endpoint {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            background: #f9fafb;
+            border-radius: 6px;
+            margin-bottom: 0.5rem;
+        }
+        .method {
+            background: #667eea;
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            margin-right: 1rem;
+        }
+        .path {
+            font-family: monospace;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚀 Ollama Optimizer v2</h1>
+            <p>Production-grade LLMOps platform for local LLM inference</p>
+            <span class="status ok" id="status">● Connected</span>
+        </header>
+
+        <div class="grid">
+            <div class="card">
+                <h2>Total Requests</h2>
+                <div class="value" id="requests">0</div>
+                <div class="label">API requests processed</div>
+            </div>
+            <div class="card">
+                <h2>Avg Latency</h2>
+                <div class="value" id="latency">0ms</div>
+                <div class="label">Average response time</div>
+            </div>
+            <div class="card">
+                <h2>Cache Hit Rate</h2>
+                <div class="value" id="cache">0%</div>
+                <div class="label">Redis cache efficiency</div>
+            </div>
+        </div>
+
+        <div class="playground">
+            <h2>💬 Chat Playground</h2>
+            <textarea id="prompt" placeholder="Enter your prompt here..."></textarea>
+            <button onclick="sendPrompt()" id="sendBtn">Send</button>
+            <div class="response" id="response">
+                <pre>Response will appear here...</pre>
+            </div>
+        </div>
+
+        <div class="endpoints">
+            <h2>📡 API Endpoints</h2>
+            <div class="endpoint">
+                <span class="method">GET</span>
+                <span class="path">/health</span>
+            </div>
+            <div class="endpoint">
+                <span class="method">GET</span>
+                <span class="path">/system</span>
+            </div>
+            <div class="endpoint">
+                <span class="method">GET</span>
+                <span class="path">/metrics</span>
+            </div>
+            <div class="endpoint">
+                <span class="method">POST</span>
+                <span class="path">/v1/chat/completions</span>
+            </div>
+            <div class="endpoint">
+                <span class="method">GET</span>
+                <span class="path">/admin/cache/stats</span>
+            </div>
+            <div class="endpoint">
+                <span class="method">GET</span>
+                <span class="path">/admin/routing</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function sendPrompt() {
+            const prompt = document.getElementById('prompt').value;
+            const btn = document.getElementById('sendBtn');
+            const responseDiv = document.getElementById('response');
+            
+            if (!prompt.trim()) return;
+            
+            btn.disabled = true;
+            responseDiv.innerHTML = '<pre>Loading...</pre>';
+            
+            try {
+                const res = await fetch('/v1/chat/completions', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        messages: [{ role: 'user', content: prompt }],
+                        stream: false
+                    })
+                });
+                
+                const data = await res.json();
+                responseDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            } catch (error) {
+                responseDiv.innerHTML = `<pre>Error: ${error.message}</pre>`;
+            }
+            
+            btn.disabled = false;
+        }
+
+        async function updateMetrics() {
+            try {
+                const res = await fetch('/metrics');
+                const text = await res.text();
+                
+                // Parse Prometheus metrics
+                const lines = text.split('\n');
+                let requests = 0;
+                let latency = 0;
+                let cacheHits = 0;
+                let cacheMisses = 0;
+                
+                lines.forEach(line => {
+                    if (line.startsWith('hpc_requests_total')) {
+                        requests = parseFloat(line.split(' ')[1]) || 0;
+                    }
+                    if (line.startsWith('hpc_latency_seconds') && !line.includes('quantile')) {
+                        latency = (parseFloat(line.split(' ')[1]) * 1000).toFixed(0) || 0;
+                    }
+                    if (line.startsWith('hpc_cache_hits_total')) {
+                        cacheHits = parseFloat(line.split(' ')[1]) || 0;
+                    }
+                    if (line.startsWith('hpc_cache_misses_total')) {
+                        cacheMisses = parseFloat(line.split(' ')[1]) || 0;
+                    }
+                });
+                
+                document.getElementById('requests').textContent = requests;
+                document.getElementById('latency').textContent = latency + 'ms';
+                
+                const total = cacheHits + cacheMisses;
+                const rate = total > 0 ? ((cacheHits / total) * 100).toFixed(0) : 0;
+                document.getElementById('cache').textContent = rate + '%';
+            } catch (error) {
+                console.error('Failed to fetch metrics:', error);
+            }
+        }
+
+        // Update metrics every 5 seconds
+        setInterval(updateMetrics, 5000);
+        updateMetrics();
+    </script>
+</body>
+</html>
