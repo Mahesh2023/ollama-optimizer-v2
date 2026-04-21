@@ -26,8 +26,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=python-builder /install /usr/local
-COPY --from=node-builder /web/.next /app/.next
-COPY --from=node-builder /web/public /app/public
+COPY --from=node-builder /web/out /app/public
 COPY --from=node-builder /web/package.json /app/package.json
 
 WORKDIR /app
