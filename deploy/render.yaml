@@ -17,6 +17,18 @@ services:
       - key: LOG_LEVEL
         value: INFO
 
+  - type: web
+    name: ollama-optimizer-dashboard
+    env: node
+    plan: starter
+    buildCommand: cd web && npm install && npm run build
+    startCommand: cd web && npm start
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        value: https://ollama-optimizer-v2.onrender.com
+      - key: NODE_VERSION
+        value: 18
+
   - type: redis
     name: ollama-cache
     plan: starter
